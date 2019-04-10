@@ -1,0 +1,26 @@
+resources:
+  - name: test-network
+    type: network-template.jinja
+    
+  - type: container.v1.cluster
+    name: test-k8s-cluster
+    properties:
+      zone: asia-south1-a
+      cluster:
+        name: test-cluster
+        initialNodeCount: 2
+        network: $(ref.test-network-vpc.selfLink)
+        subnetwork: $(ref.test-network-subnet.selfLink)
+        locations:
+          - asia-south1-a
+          - asia-south1-b
+        nodeConfig:
+          machineType: n1-standard-1
+          diskSizeGb: 20
+          preemptible: true   
+        privateClusterConfig:
+          enablePrivateNodes: true
+          masterIpv4CidrBlock: 10.2.0.0/28
+        ipAllocationPolicy:
+          useIpAliases: true    
+  

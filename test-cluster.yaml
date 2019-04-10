@@ -1,0 +1,7 @@
+imports:
+- path: network-template.jinja
+- path: gke-cluster-template.jinja
+
+resources:
+- name: test-cluster
+  type: gke-cluster-template.jinja

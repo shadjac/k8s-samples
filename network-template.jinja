@@ -1,0 +1,11 @@
+resources:
+- type: compute.v1.network
+  name: test-network-vpc
+  properties:
+    autoCreateSubnetworks: false
+- type: compute.v1.subnetwork
+  name: test-network-subnet
+  properties:
+    network: $(ref.test-network-vpc.selfLink)
+    ipCidrRange: 10.1.0.0/20
+    region: asia-south1
