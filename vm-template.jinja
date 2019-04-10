@@ -1,0 +1,79 @@
+
+resources:
+- type: compute.v1.network
+  name: my-custom-vpc
+  properties:
+    autoCreateSubnetworks: false
+- type: compute.v1.subnetwork
+  name: my-custom-subnet
+  properties:
+    network: $(ref.my-custom-vpc.selfLink)
+    ipCidrRange: {{ properties["subnet-range"] }}
+    region: asia-south1
+- type: compute.v1.firewall
+  name: allow-rdp
+  properties:
+    network: $(ref.my-custom-vpc.selfLink)
+    sourceRanges: ["0.0.0.0/0"]
+    allowed:
+    - ports: ["3389"]
+      IPProtocol: TCP
+    targetTags: 
+    - rdp-tag
+- type: compute.v1.instance
+  name: windows-bastion-host
+  # password IVeuefl\4+I6P#5
+  properties:
+    disks:
+    - autoDelete: true
+      boot: true
+      type: PERSISTENT
+      initializeParams:
+        sourceImage: projects/windows-cloud/global/images/family/windows-2012-r2
+        diskSizeGb: 50
+        diskName: my-disk-{{ env["name"] }}
+    tags:
+      items:
+        - rdp-tag
+    machineType: zones/{{ properties["zone"] }}/machineTypes/f1-micro
+    networkInterfaces:
+      - network: $(ref.my-custom-vpc.selfLink)
+        subnetwork: $(ref.my-custom-subnet.selfLink)
+
+      - network: /global/networks/default
+        subnetwork: regions/{{ properties["region"] }}/subnetworks/default
+    serviceAccounts: 
+    - email: 641550107744-compute@developer.gserviceaccount.com 
+    zone: {{ properties["zone"] }}
+- type: compute.v1.instance
+  name: windows-bastion-securehost
+  # password 4,f%Jy!6CO7%?})
+  properties:
+    disks:
+    - autoDelete: true
+      boot: true
+      type: PERSISTENT
+      initializeParams:
+        sourceImage: projects/windows-cloud/global/images/family/windows-2012-r2
+        diskSizeGb: 50
+        diskName: my-bastion-securehost-disk
+    tags:
+      items:
+        - rdp-tag
+    machineType: zones/{{ properties["zone"] }}/machineTypes/f1-micro
+    networkInterfaces:
+      - network: $(ref.my-custom-vpc.selfLink)
+        subnetwork: $(ref.my-custom-subnet.selfLink)
+        accessConfigs:
+        - type: ONE_TO_ONE_NAT
+      
+      - network: /global/networks/default
+        subnetwork: regions/{{ properties["region"] }}/subnetworks/default
+
+    serviceAccounts: 
+    - email: 641550107744-compute@developer.gserviceaccount.com 
+      scope:
+        - datastore.googleapis.com
+        - deploymentmanager.googleapis.com
+    zone: {{ properties["zone"] }}
+    
